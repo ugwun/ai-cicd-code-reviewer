@@ -1,6 +1,8 @@
 # AI Code Reviewer for GitLab CI/CD
 This repository contains a sample .gitlab-ci.yml file that demonstrates how to set up an automatic AI code reviewer using GitLab CI/CD pipelines. The AI reviewer helps developers find potential bugs, suggest best practices, and clean code standards. It also provides short examples of how potential changes could look like. This solution can be used with Azure OpenAI deployments as well.
 
+![ai_code_reviewer.png](ai_code_reviewer.png)
+
 ## Sample .gitlab-ci.yml
 The provided .gitlab-ci.yml file includes a single stage, lint, which is responsible for performing the AI code review. The script retrieves the changes in a merge request and iterates through the changed files. For each file, it sends the file content to the OpenAI API for evaluation and adds the AI-generated suggestions as a comment to the merge request.
 
