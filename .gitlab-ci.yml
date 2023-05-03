@@ -1,0 +1,63 @@
+stages:
+  - lint
+
+lint:
+  stage: lint
+  script:
+    - apk add jq
+    - |
+      #!/bin/bash
+
+      ### Part 1 - get the changes
+      # Get the commit SHA for the triggered pipeline
+      COMMIT_SHA=`curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -X GET $GITLAB_API/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID  | jq -r .sha`
+      echo "COMMIT_SHA: $COMMIT_SHA"
+
+      # Get the Merge Request ID for the commit
+      MR_ID=`curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -X GET $GITLAB_API/projects/$CI_PROJECT_ID/repository/commits/$COMMIT_SHA/merge_requests | jq -r .[].iid`
+      echo "MR_ID: $MR_ID"
+
+      # Get the changed files in the Merge Request
+      MR_FILES=`curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -X GET $GITLAB_API/projects/$CI_PROJECT_ID/merge_requests/$MR_ID/changes | jq -r '.changes[] | select(.new_file == true or .deleted_file == false) | .new_path'`
+      
+      # Iterate through the changed files
+      for FILE_PATH in $MR_FILES; do
+        echo "Changed file: $FILE_PATH"
+
+        # Get the content of the changed file
+        FILE_CONTENT=`curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" -X GET "$GITLAB_API/projects/$CI_PROJECT_ID/repository/files/$FILE_PATH/raw?ref=$COMMIT_SHA"`
+          
+        # Create a JSON payload
+        JSON_PAYLOAD=$(jq -n \
+              --arg file_path "$FILE_PATH" \
+              --arg file_content "$FILE_CONTENT" \
+              '{ messages: [ { role: "system", content: "You are an AI code reviewer that helps developers find potential bugs, suggest best practices and clean code standards. Also give short examples on how the potential changes could look like." }, { role: "user", content: ("Review the following file:\nFile Name: " + $file_path + "\n\nFile Content:\n" + $file_content) } ], max_tokens: 800, temperature: 0.7, frequency_penalty: 0, presence_penalty: 0, top_p: 0.95, stop: null }')
+          
+          # Debug: Print the JSON payload
+          echo "JSON_PAYLOAD:"
+          echo "$JSON_PAYLOAD"
+          echo "-------------------------"
+          
+        # Send the JSON payload to the OpenAI API for evaluation
+        API_RESPONSE=$(curl -X POST "$OPENAI_ENDPOINT?api-version=$OPENAI_API_VERSION" \
+              -H "Content-Type: application/json" \
+              -H "api-key: $OPENAI_API_KEY" \
+              -d "$JSON_PAYLOAD")
+          
+        # Debug: Print the API response
+        echo "API_RESPONSE:"
+        echo "$API_RESPONSE"
+        echo "-------------------------"
+  
+        
+        # Get the suggestions from the API response
+        SUGGESTIONS=$(echo "$API_RESPONSE" | jq -r '.choices[0].message.content')
+        
+        # Add the suggestions as a comment to the merge request
+        curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$GITLAB_API/projects/$CI_PROJECT_ID/merge_requests/$MR_ID/notes" \
+        --form "body=Review for file **$FILE_PATH**: $SUGGESTIONS"
+  
+        echo "-------------------------"
+      done
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
