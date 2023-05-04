@@ -12,7 +12,7 @@ To use the AI code reviewer, you need to set the following environment variables
 * GITLAB_TOKEN: Your GitLab API private token (e.g., abc123def456).
 * GITLAB_API: The base URL of your GitLab API (e.g., https://gitlab.example.com/api/v4).
 * OPENAI_API_KEY: Your Azure OpenAI API key (e.g., ghi789jkl012).
-* OPENAI_ENDPOINT: The Azure OpenAI endpoint (e.g., https://<YOUR_RESOURCE_GROUP>.openai.azure.com/openai/deployments/<YOUR_MODEL_NAME>/chat/completions => this is a link for Azure deployment. The link will look defferently if you are using your OpenAI account). For example in Azure, you can find the link in the _Azure OpenAI Studio_ in _Chat_ tab and then press _View code_
+* OPENAI_ENDPOINT: The Azure OpenAI endpoint (e.g., https://<YOUR_RESOURCE_GROUP>.openai.azure.com/openai/deployments/<YOUR_MODEL_NAME>/chat/completions => this is a link for Azure deployment. The link will look defferently if you are using your OpenAI account). For example in **Azure**, you can find the link in the _Azure OpenAI Studio_ in _Chat_ tab and then press _View code_. As for direct **OpenAI** links, same example code with API links can be found for example here: https://platform.openai.com/playground?mode=chat
 * OPENAI_API_VERSION: The Azure OpenAI API version (e.g., 2023-03-15-preview).
 ## Usage
 1. Add the provided .gitlab-ci.yml file to your GitLab repository.
