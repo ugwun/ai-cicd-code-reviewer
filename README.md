@@ -6,6 +6,8 @@ This repository contains a sample .gitlab-ci.yml file that demonstrates how to s
 ## Sample .gitlab-ci.yml
 The provided .gitlab-ci.yml file includes a single stage, lint, which is responsible for performing the AI code review. The script retrieves the changes in a merge request and iterates through the changed files. For each file, it sends the file content to the OpenAI API for evaluation and **adds the AI-generated suggestions as a comment to the merge request**.
 
+![gitlab ai code review diagram](gitlab_ai_code_review.jpg)
+
 ## Environment Variables
 To use the AI code reviewer, you need to set the following environment variables:
 
